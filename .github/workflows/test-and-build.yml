@@ -1,0 +1,42 @@
+name: Test and Build
+
+on:
+  pull_request:
+    branches:
+      - next
+  workflow_dispatch:
+
+jobs:
+  test_and_build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Check linting
+        run: yarn lint
+
+      - name: Check formatting
+        run: yarn format
+
+      - name: Build
+        run: yarn build
+
+      - name: Run tests
+        run: yarn test:ci
+
+      - name: Jest Coverage Comment
+        uses: MishaKav/jest-coverage-comment@main
+        with:
+          title: Code Coverage Report
+          junitxml-path: ./coverage/junit.xml

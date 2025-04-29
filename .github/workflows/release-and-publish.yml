@@ -1,0 +1,141 @@
+name: Release and publish
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test_and_build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.retrieve_version.outputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+
+      - name: Retrieve version from package.json
+        id: retrieve_version
+        run: |
+          version=$(jq -r .version package.json)
+          if [ -z "$version" ]; then
+            echo "❌ version not found in package.json" >&2
+            exit 1
+          fi
+          if ! echo "$version" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' > /dev/null; then
+            echo "❌ version '$version' is not a valid semantic version (e.g., 1.2.3)" >&2
+            exit 1
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Check linting
+        run: yarn lint
+
+      - name: Check formatting
+        run: yarn format
+
+      - name: Build
+        run: yarn build
+
+      - name: Run tests
+        run: yarn test:ci
+
+      - name: Cache build output
+        uses: actions/cache@v4
+        with:
+          path: dist
+          key: build-dist-${{ runner.os }}-${{ steps.retrieve_version.outputs.version }}-${{ hashFiles('src/**') }}
+          restore-keys: build-dist-${{ runner.os }}-
+
+  release:
+    needs: test_and_build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create tag
+        id: create-tag
+        run: |
+          new_version=${{ needs.test_and_build.outputs.version }}
+
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git tag -a "$new_version" -m "Release version $new_version"
+          git push origin "$new_version"
+
+          echo "new_tag=$new_version" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          new_version=${{ needs.test_and_build.outputs.version }}
+          new_tag=${{ steps.create-tag.outputs.new_tag }}          
+
+          if ! grep -q "## \[$new_version\]" CHANGELOG.md; then
+          echo "❌ No entry for version $new_version found in CHANGELOG.md" >&2
+          exit 1
+          fi
+          sed -n "/## \[$new_version\]/,/## \[/p" CHANGELOG.md | sed '$d' > release_notes.md
+          if [ ! -s release_notes.md ]; then
+            echo "❌ Release notes for version $new_version are empty" >&2
+            exit 1
+          fi
+
+          gh release create "$new_tag" \
+            --title "Release "$new_version"" \
+            --notes-file release_notes.md \
+            --target ${{ github.sha }}
+
+  publish:
+    needs: [test_and_build, release]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: dist
+          key: build-dist-${{ runner.os }}-${{ needs.test_and_build.outputs.version }}-${{ hashFiles('src/**') }}
+
+      - name: 'Install dependencies'
+        run: yarn install --immutable
+
+      - name: 'Publish package'
+        run: |
+          version=${{ needs.test_and_build.outputs.version }}
+          if npm view "@pyx-industries/${{ github.repository }}@$version" >/dev/null 2>&1; then
+            echo "Version $version already published to npm, skipping publish."
+          else
+            yarn publish --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
