@@ -97,7 +97,7 @@ Constructs a render method object for the specified template and type.
 ### extractRenderTemplate
 
 ```typescript
-`extractRenderTemplate(renderMethod: RenderMethod)
+extractRenderTemplate(renderMethod: RenderMethod)
 ```
 
 Extracts the template content, fetching from a URL if necessary.
