@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/pyx-industries/vc-render-template-utils/compare/1.0.0...v1.1.0) (2025-05-02)
+
+
+### Features
+
+* Enhance removeLineBreaks to handle \r and consecutive line breaks ([#5](https://github.com/pyx-industries/vc-render-template-utils/issues/5)) ([4d14aaa](https://github.com/pyx-industries/vc-render-template-utils/commit/4d14aaa3db0c627c2e475bab69e9cea79edb065e))
+* Normalise template whitespace ([#4](https://github.com/pyx-industries/vc-render-template-utils/issues/4)) ([fb40692](https://github.com/pyx-industries/vc-render-template-utils/commit/fb40692c6a74f02aedae454a31498b79fc611608))
+
+
+### Miscellaneous
+
+* Fix extractRenderTemplate example format ([#3](https://github.com/pyx-industries/vc-render-template-utils/issues/3)) ([1212afa](https://github.com/pyx-industries/vc-render-template-utils/commit/1212afa2b73ffa0c49e80df799a9a124d23c8a7a))
+
 ## [1.0.0](https://github.com/pyx-industries/vc-render-template-utils/compare/v1.0.0...v1.0.0) (2025-04-29)
 
 
