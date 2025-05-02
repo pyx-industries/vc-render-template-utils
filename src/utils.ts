@@ -11,7 +11,7 @@ export const fetchTemplate = async (url: string) => {
 };
 
 export const removeLineBreaks = (str: string) => {
-  return str.replace(/\n/g, '');
+  return str.replace(/[\n\r]+/g, '');
 };
 
 export const normaliseWhitespace = (str: string) => {

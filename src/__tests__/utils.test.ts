@@ -85,6 +85,26 @@ describe('Utility Functions', () => {
     it('should handle mixed content', () => {
       expect(removeLineBreaks('start\nmiddle\nend')).toBe('startmiddleend');
     });
+
+    it('should remove carriage returns', () => {
+      expect(removeLineBreaks('hello\rworld')).toBe('helloworld');
+    });
+
+    it('should remove Windows-style line endings (CRLF)', () => {
+      expect(removeLineBreaks('hello\r\nworld')).toBe('helloworld');
+    });
+
+    it('should remove multiple consecutive mixed line breaks', () => {
+      expect(removeLineBreaks('hello\n\n\rworld\r\n\r\nmiddle')).toBe(
+        'helloworldmiddle',
+      );
+    });
+
+    it('should treat consecutive line breaks as a single replacement', () => {
+      expect(removeLineBreaks('line\n\n\nbreak')).toBe('linebreak');
+      expect(removeLineBreaks('line\r\r\rbreak')).toBe('linebreak');
+      expect(removeLineBreaks('line\r\n\r\nbreak')).toBe('linebreak');
+    });
   });
 
   describe('normaliseWhitespace', () => {
