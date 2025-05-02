@@ -1,5 +1,5 @@
 {
-  "plugins": ["node-workspace", "sentence-case"],
+  "plugins": ["sentence-case"],
   "always-update": true,
   "skip-github-release": true,
   "pull-request-title-pattern": "chore: bump version to ${version} and update changelog",
@@ -9,7 +9,6 @@
   "packages": {
     ".": {
       "release-type": "node",
-      "separate-pull-requests": false,
       "changelog-sections": [
         {
           "type": "feat",
