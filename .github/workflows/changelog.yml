@@ -39,4 +39,4 @@ jobs:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           target-branch: ${{ github.ref_name }}
           config-file: .github/workflows/release-please-config.json
-          manifest-file: .github/workflows/.release-please-manifest.json
+          manifest-file: .release-please-manifest.json
