@@ -1,5 +1,5 @@
 import { TemplateFetchError } from '../errors';
-import { fetchTemplate, removeLineBreaks } from '../utils';
+import { fetchTemplate, normaliseWhitespace, removeLineBreaks } from '../utils';
 
 describe('Utility Functions', () => {
   beforeEach(() => {
@@ -84,6 +84,32 @@ describe('Utility Functions', () => {
 
     it('should handle mixed content', () => {
       expect(removeLineBreaks('start\nmiddle\nend')).toBe('startmiddleend');
+    });
+  });
+
+  describe('normaliseWhitespace', () => {
+    it('should replace multiple spaces with a single space', () => {
+      expect(normaliseWhitespace('hello    world')).toBe('hello world');
+    });
+
+    it('should replace tabs with a single space', () => {
+      expect(normaliseWhitespace('hello\tworld')).toBe('hello world');
+    });
+
+    it('should replace mixed whitespace with a single space', () => {
+      expect(normaliseWhitespace('hello \t \n world')).toBe('hello world');
+    });
+
+    it('should handle leading and trailing whitespace', () => {
+      expect(normaliseWhitespace('  hello world  ')).toBe(' hello world ');
+    });
+
+    it('should handle empty string', () => {
+      expect(normaliseWhitespace('')).toBe('');
+    });
+
+    it('should handle string with only whitespace', () => {
+      expect(normaliseWhitespace('   \t\n   ')).toBe(' ');
     });
   });
 });
