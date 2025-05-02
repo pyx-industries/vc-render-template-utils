@@ -33,6 +33,7 @@ describe('Main Index Functions', () => {
     MockedRenderMethodFactory.mockClear();
     MockedTemplatingEngineFactory.mockClear();
     mockedUtils.removeLineBreaks.mockClear();
+    mockedUtils.normaliseWhitespace.mockClear();
 
     mockRenderMethodProvider = {
       construct: jest.fn(),
@@ -51,8 +52,9 @@ describe('Main Index Functions', () => {
   });
 
   describe('constructRenderMethod', () => {
-    const template = 'template\nwith\nbreaks';
-    const cleanedTemplate = 'templatewithbreaks';
+    const template = 'template\nwith\nbreaks   and   spaces';
+    const templateWithoutLineBreaks = 'templatewithbreaks   and   spaces';
+    const cleanedTemplate = 'templatewithbreaks and spaces';
     const type = RenderMethodType.RenderTemplate2024;
     const extra = { key: 'value' };
     const expectedResult: RenderMethod = {
@@ -63,15 +65,28 @@ describe('Main Index Functions', () => {
     };
 
     it('should call removeLineBreaks with the template', () => {
-      mockedUtils.removeLineBreaks.mockReturnValue(cleanedTemplate);
+      mockedUtils.removeLineBreaks.mockReturnValue(templateWithoutLineBreaks);
+      mockedUtils.normaliseWhitespace.mockReturnValue(cleanedTemplate);
       mockRenderMethodProvider.construct.mockReturnValue(expectedResult);
 
       constructRenderMethod(template, type, extra);
       expect(mockedUtils.removeLineBreaks).toHaveBeenCalledWith(template);
     });
 
+    it('should call normaliseWhitespace with the result of removeLineBreaks', () => {
+      mockedUtils.removeLineBreaks.mockReturnValue(templateWithoutLineBreaks);
+      mockedUtils.normaliseWhitespace.mockReturnValue(cleanedTemplate);
+      mockRenderMethodProvider.construct.mockReturnValue(expectedResult);
+
+      constructRenderMethod(template, type, extra);
+      expect(mockedUtils.normaliseWhitespace).toHaveBeenCalledWith(
+        templateWithoutLineBreaks,
+      );
+    });
+
     it('should create RenderMethodFactory and call createRenderMethod', () => {
-      mockedUtils.removeLineBreaks.mockReturnValue(cleanedTemplate);
+      mockedUtils.removeLineBreaks.mockReturnValue(templateWithoutLineBreaks);
+      mockedUtils.normaliseWhitespace.mockReturnValue(cleanedTemplate);
       mockRenderMethodProvider.construct.mockReturnValue(expectedResult);
 
       constructRenderMethod(template, type, extra);
@@ -82,7 +97,8 @@ describe('Main Index Functions', () => {
     });
 
     it('should call construct on the created render method provider', () => {
-      mockedUtils.removeLineBreaks.mockReturnValue(cleanedTemplate);
+      mockedUtils.removeLineBreaks.mockReturnValue(templateWithoutLineBreaks);
+      mockedUtils.normaliseWhitespace.mockReturnValue(cleanedTemplate);
       mockRenderMethodProvider.construct.mockReturnValue(expectedResult);
 
       constructRenderMethod(template, type, extra);
@@ -93,7 +109,8 @@ describe('Main Index Functions', () => {
     });
 
     it('should return the result from the render method provider construct', () => {
-      mockedUtils.removeLineBreaks.mockReturnValue(cleanedTemplate);
+      mockedUtils.removeLineBreaks.mockReturnValue(templateWithoutLineBreaks);
+      mockedUtils.normaliseWhitespace.mockReturnValue(cleanedTemplate);
       mockRenderMethodProvider.construct.mockReturnValue(expectedResult);
 
       const result = constructRenderMethod(template, type, extra);
