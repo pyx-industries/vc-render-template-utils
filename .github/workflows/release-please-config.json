@@ -9,6 +9,7 @@
   "packages": {
     ".": {
       "release-type": "node",
+      "separate-pull-requests": false,
       "changelog-sections": [
         {
           "type": "feat",
