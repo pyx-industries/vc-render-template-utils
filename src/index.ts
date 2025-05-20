@@ -1,7 +1,7 @@
 import { RenderMethodFactory } from './render_methods/factory';
 import { TemplatingEngineFactory } from './templating_engines/factory';
 import { RenderMethod, RenderMethodType, TemplatingEngineType } from './types';
-import { removeLineBreaks } from './utils';
+import { normaliseWhitespace, removeLineBreaks } from './utils';
 
 export * from './errors';
 export * from './types';
@@ -11,7 +11,7 @@ export function constructRenderMethod(
   renderMethodType: RenderMethodType,
   extra: Record<string, unknown> = {},
 ): RenderMethod {
-  const cleanedTemplate = removeLineBreaks(template);
+  const cleanedTemplate = normaliseWhitespace(removeLineBreaks(template));
 
   const renderMethodFactory = new RenderMethodFactory();
   const renderMethod = renderMethodFactory.createRenderMethod(renderMethodType);
