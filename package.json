@@ -2,6 +2,10 @@
   "name": "@pyx-industries/vc-render-template-utils",
   "version": "1.0.0",
   "description": "A lightweight utility library for constructing, extracting and rendering verifiable credential render templates.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pyx-industries/vc-render-template-utils.git"
+  },
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
