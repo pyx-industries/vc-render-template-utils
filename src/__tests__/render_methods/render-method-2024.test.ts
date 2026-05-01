@@ -25,23 +25,84 @@ describe('RenderMethod2024', () => {
   });
 
   describe('construct', () => {
-    it('should construct a RenderTemplate2024 object correctly', () => {
+    it('should construct a RenderTemplate2024 object with `type` as an array containing the render method type', () => {
+      const result = renderMethod.construct(templateContent, extraData);
+      expect(result.type).toEqual([RenderMethodType.RenderTemplate2024]);
+    });
+
+    it('should include template and provided extra fields when present', () => {
       const result = renderMethod.construct(templateContent, extraData);
       expect(result).toEqual({
-        type: RenderMethodType.RenderTemplate2024,
+        type: [RenderMethodType.RenderTemplate2024],
         template: templateContent,
         mediaQuery: extraData.mediaQuery,
         url: extraData.url,
       });
     });
 
-    it('should use default values if extra data is missing', () => {
+    it('should accept all spec-defined optional fields via extra', () => {
+      const fullExtra = {
+        name: 'Display Name',
+        mediaQuery: 'print',
+        url: 'http://example.com/t.html',
+        mediaType: 'text/html',
+        digestMultibase: 'zQmExampleHash',
+      };
+      const result = renderMethod.construct(templateContent, fullExtra);
+      expect(result).toEqual({
+        type: [RenderMethodType.RenderTemplate2024],
+        template: templateContent,
+        ...fullExtra,
+      });
+    });
+
+    it('should omit optional fields that are not provided rather than emitting empty strings', () => {
       const result = renderMethod.construct(templateContent, {});
       expect(result).toEqual({
-        type: RenderMethodType.RenderTemplate2024,
+        type: [RenderMethodType.RenderTemplate2024],
         template: templateContent,
+      });
+      expect(result).not.toHaveProperty('mediaQuery');
+      expect(result).not.toHaveProperty('url');
+      expect(result).not.toHaveProperty('name');
+      expect(result).not.toHaveProperty('mediaType');
+      expect(result).not.toHaveProperty('digestMultibase');
+    });
+
+    it('should omit optional fields that are explicitly empty strings', () => {
+      const result = renderMethod.construct(templateContent, {
+        name: '',
         mediaQuery: '',
         url: '',
+        mediaType: '',
+        digestMultibase: '',
+      });
+      expect(result).toEqual({
+        type: [RenderMethodType.RenderTemplate2024],
+        template: templateContent,
+      });
+    });
+
+    it('should omit `template` when it is an empty string (URL-only case)', () => {
+      const result = renderMethod.construct('', {
+        url: 'http://example.com/t.html',
+      });
+      expect(result).toEqual({
+        type: [RenderMethodType.RenderTemplate2024],
+        url: 'http://example.com/t.html',
+      });
+      expect(result).not.toHaveProperty('template');
+    });
+
+    it('should ignore non-string values supplied via extra', () => {
+      const result = renderMethod.construct(templateContent, {
+        name: 42,
+        mediaQuery: null,
+        url: undefined,
+      } as unknown as Record<string, unknown>);
+      expect(result).toEqual({
+        type: [RenderMethodType.RenderTemplate2024],
+        template: templateContent,
       });
     });
   });

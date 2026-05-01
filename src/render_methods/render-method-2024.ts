@@ -9,11 +9,16 @@ import {
 import { fetchTemplate } from '../utils';
 
 export const defaultRenderMethod2024: RenderTemplate2024 = {
-  type: RenderMethodType.RenderTemplate2024,
-  mediaQuery: '',
-  template: '',
-  url: '',
+  type: [RenderMethodType.RenderTemplate2024],
 };
+
+const OPTIONAL_FIELDS = [
+  'name',
+  'mediaQuery',
+  'url',
+  'mediaType',
+  'digestMultibase',
+] as const;
 
 export class RenderMethod2024 implements RenderMethodProvider {
   private readonly _formatter: Formatter;
@@ -26,12 +31,22 @@ export class RenderMethod2024 implements RenderMethodProvider {
     template: string,
     extra: Record<string, unknown>,
   ): RenderTemplate2024 {
-    return {
-      type: RenderMethodType.RenderTemplate2024,
-      mediaQuery: (extra.mediaQuery || '') as string,
-      template,
-      url: (extra.url || '') as string,
+    const result: RenderTemplate2024 = {
+      type: [RenderMethodType.RenderTemplate2024],
     };
+
+    if (template) {
+      result.template = template;
+    }
+
+    for (const field of OPTIONAL_FIELDS) {
+      const value = extra[field];
+      if (typeof value === 'string' && value !== '') {
+        result[field] = value;
+      }
+    }
+
+    return result;
   }
 
   async extractTemplate(renderMethod: RenderMethod): Promise<string> {
