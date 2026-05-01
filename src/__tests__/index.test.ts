@@ -58,10 +58,8 @@ describe('Main Index Functions', () => {
     const type = RenderMethodType.RenderTemplate2024;
     const extra = { key: 'value' };
     const expectedResult: RenderMethod = {
-      type: RenderMethodType.RenderTemplate2024,
+      type: [RenderMethodType.RenderTemplate2024],
       template: cleanedTemplate,
-      mediaQuery: '',
-      url: '',
     };
 
     it('should call removeLineBreaks with the template', () => {
@@ -120,12 +118,12 @@ describe('Main Index Functions', () => {
 
   describe('extractRenderTemplate', () => {
     const renderMethodObject: RenderMethod = {
-      type: RenderMethodType.RenderTemplate2024,
+      type: [RenderMethodType.RenderTemplate2024],
       template: 'some template',
     };
     const expectedTemplate = 'extracted template content';
 
-    it('should create RenderMethodFactory and call createRenderMethod', async () => {
+    it('should create RenderMethodFactory and call createRenderMethod with the resolved render method type', async () => {
       mockRenderMethodProvider.extractTemplate.mockResolvedValue(
         expectedTemplate,
       );
@@ -134,7 +132,55 @@ describe('Main Index Functions', () => {
       expect(MockedRenderMethodFactory).toHaveBeenCalledTimes(1);
       expect(
         MockedRenderMethodFactory.prototype.createRenderMethod,
-      ).toHaveBeenCalledWith(renderMethodObject.type);
+      ).toHaveBeenCalledWith(RenderMethodType.RenderTemplate2024);
+    });
+
+    it('should resolve the render method type from a `type` array containing additional values', async () => {
+      mockRenderMethodProvider.extractTemplate.mockResolvedValue(
+        expectedTemplate,
+      );
+
+      await extractRenderTemplate({
+        type: ['SomeOtherType', RenderMethodType.RenderTemplate2024],
+        template: 'some template',
+      });
+      expect(
+        MockedRenderMethodFactory.prototype.createRenderMethod,
+      ).toHaveBeenCalledWith(RenderMethodType.RenderTemplate2024);
+    });
+
+    it('should pass a non-array `type` through unchanged to the factory', async () => {
+      mockRenderMethodProvider.extractTemplate.mockResolvedValue(
+        expectedTemplate,
+      );
+
+      await extractRenderTemplate({
+        type: RenderMethodType.WebRenderingTemplate2022,
+        template: 'some template',
+      });
+      expect(
+        MockedRenderMethodFactory.prototype.createRenderMethod,
+      ).toHaveBeenCalledWith(RenderMethodType.WebRenderingTemplate2022);
+    });
+
+    it('should throw UnsupportedRenderMethodError including the unsupported entries when no `type` entry is supported', async () => {
+      await expect(
+        extractRenderTemplate({
+          type: ['UnknownType', 'AnotherUnknown'],
+          template: 'some template',
+        } as unknown as RenderMethod),
+      ).rejects.toThrow(
+        'Unsupported render method: UnknownType, AnotherUnknown',
+      );
+    });
+
+    it('should throw UnsupportedRenderMethodError with an `<empty>` indicator when `type` is an empty array', async () => {
+      await expect(
+        extractRenderTemplate({
+          type: [],
+          template: 'some template',
+        } as unknown as RenderMethod),
+      ).rejects.toThrow('Unsupported render method: <empty>');
     });
 
     it('should call extractTemplate on the created render method provider', async () => {

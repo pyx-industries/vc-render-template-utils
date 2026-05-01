@@ -92,7 +92,7 @@ Constructs a render method object for the specified template and type.
 
 - `template`: The template string or empty if using a URL.
 - `renderMethodType`: Either `RenderTemplate2024` or `WebRenderingTemplate2022`.
-- `extra`: Optional metadata (e.g., `url` or `mediaQuery`).
+- `extra`: Optional metadata. For `RenderTemplate2024` the supported keys are `name`, `mediaQuery`, `url`, `mediaType`, and `digestMultibase`. Empty or non-string values are omitted from the constructed render method rather than emitted as empty strings.
 
 ### extractRenderTemplate
 

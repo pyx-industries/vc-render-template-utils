@@ -9,10 +9,13 @@ export const supportedRenderMethods = [
 ] as const;
 
 export interface RenderTemplate2024 {
-  type: RenderMethodType.RenderTemplate2024;
+  type: string[];
+  name?: string;
   mediaQuery?: string;
   template?: string;
   url?: string;
+  mediaType?: string;
+  digestMultibase?: string;
 }
 
 export interface WebRenderingTemplate2022 {
