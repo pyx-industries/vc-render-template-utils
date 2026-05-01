@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.0.0](https://github.com/pyx-industries/vc-render-template-utils/compare/1.1.0...v2.0.0) (2026-05-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* **render-method-2024:** align RenderTemplate2024 with downstream renderer ([#19](https://github.com/pyx-industries/vc-render-template-utils/issues/19))
+
+### Features
+
+* **render-method-2024:** Align RenderTemplate2024 with downstream renderer ([#19](https://github.com/pyx-industries/vc-render-template-utils/issues/19)) ([d042ef9](https://github.com/pyx-industries/vc-render-template-utils/commit/d042ef9afbbea4fca20bbeb5d51d4c1515a69faa))
+
+
+### Miscellaneous
+
+* Add repository information ([318eeed](https://github.com/pyx-industries/vc-render-template-utils/commit/318eeed09984066db8fa7335652b6db87c2e36b3))
+* Re-trigger release-please ([3a3f5cc](https://github.com/pyx-industries/vc-render-template-utils/commit/3a3f5cc9188566726d3ba3cdbc9dee2cba8772cc))
+
 ## [1.1.0](https://github.com/pyx-industries/vc-render-template-utils/compare/1.0.0...v1.1.0) (2025-05-20)
 
 
