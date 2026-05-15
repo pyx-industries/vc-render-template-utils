@@ -45,6 +45,14 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  {
+    files: ['**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: globals.node,
+    },
+  },
   prettier,
   {
     ignores: ['dist/', 'node_modules/', 'coverage/', '*.js', '*.cjs'],

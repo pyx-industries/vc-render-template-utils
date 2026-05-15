@@ -177,9 +177,31 @@ Contributions are welcome! Please follow these steps:
 2. Create a feature branch (`git checkout -b feature/your-feature`).
 3. Commit your changes (`git commit -m 'Add your feature'`).
 4. Push to the branch (`git push origin feature/your-feature`).
-5. Open a pull request.
+5. Open a pull request against `main`.
 
-Ensure your code adheres to the project's linting and formatting standards by running `yarn lint` and `yarn format`.
+Ensure your code adheres to the project's linting and formatting standards by running `yarn lint` and `yarn format`. PRs that change user-visible behaviour should also update `CHANGELOG.md` and `RELEASE_NOTES.md` for the next version.
+
+## Releasing
+
+This repository uses trunk-based development on `main` with tag-triggered npm releases. See [ADR 001](./docs/adrs/001-trunk-based-development-and-tag-triggered-releases.md) for the rationale.
+
+To cut a release:
+
+1. Open a PR that bumps `package.json` to the target version and adds a corresponding entry to `CHANGELOG.md` and `RELEASE_NOTES.md`.
+2. Merge the PR to `main`.
+3. Push a tag matching the version, prefixed with `v`:
+
+   ```bash
+   git checkout main && git pull
+   git tag v<X.Y.Z>
+   git push origin v<X.Y.Z>
+   ```
+
+   Pre-release tags use the form `v<X.Y.Z>-rc.N`, `-alpha.N`, `-beta.N`, or `-pre.N` and publish under the `rc` npm dist-tag; everything else publishes under `latest`.
+
+4. The `Release` workflow verifies that the tag's version matches `package.json`, runs lint + tests + build, and publishes to npm via OIDC Trusted Publishing.
+
+If a release needs to be withdrawn, run the `npm rollback or archive` workflow from the Actions tab. Use `unpublish` within 72 hours of the original publish (npm policy); fall back to `deprecate` outside that window.
 
 ## License
 

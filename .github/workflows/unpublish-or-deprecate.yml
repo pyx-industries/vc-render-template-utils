@@ -1,0 +1,89 @@
+name: 'npm rollback or archive'
+
+# Manual workflow for withdrawing a published version. Two outcomes:
+#
+#   * `unpublish` runs `npm unpublish <pkg>@<version>`. npm only permits
+#     unpublish within 72 hours of a version's first publish and only when
+#     no other packages depend on it. Outside that window the command
+#     fails; that failure is the prompt to fall back to `deprecate`.
+#
+#   * `deprecate` runs `npm deprecate <pkg>@<version> "<message>"`. The
+#     version remains installable but `npm install` emits a warning and the
+#     version is hidden from typical version listings. This is the long-
+#     term archive path for broken releases that cannot be unpublished.
+#
+# Authentication uses npm OIDC Trusted Publishing, the same mechanism the
+# release workflow uses, so no separate token is required.
+#
+# See ADR 001: docs/adrs/001-trunk-based-development-and-tag-triggered-releases.md
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 2.1.0 or 2.1.0-rc.1)'
+        required: true
+        type: string
+      action:
+        description: 'Action to take'
+        required: true
+        type: choice
+        options:
+          - unpublish
+          - deprecate
+      message:
+        description: 'Reason (shown by npm for deprecate; recorded in workflow logs for unpublish)'
+        required: true
+        type: string
+
+concurrency:
+  group: npm-rollback-${{ inputs.version }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PACKAGE: '@pyx-industries/vc-render-template-utils'
+
+jobs:
+  rollback:
+    name: ${{ inputs.action }} ${{ inputs.version }}
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'pyx-industries'
+
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Record intent
+        env:
+          VER: ${{ inputs.version }}
+          ACTION: ${{ inputs.action }}
+          MESSAGE: ${{ inputs.message }}
+        run: |
+          echo "Action: ${ACTION}"
+          echo "Target: ${PACKAGE}@${VER}"
+          echo "Reason: ${MESSAGE}"
+
+      - name: Unpublish
+        if: ${{ inputs.action == 'unpublish' }}
+        env:
+          VER: ${{ inputs.version }}
+        # `npm unpublish` against the public registry only succeeds inside
+        # the 72-hour window and when no published package depends on this
+        # version. If npm rejects the request, the command exits non-zero
+        # with the policy error and the operator should re-run with the
+        # `deprecate` action instead.
+        run: npx --yes npm@11 unpublish "${PACKAGE}@${VER}"
+
+      - name: Deprecate
+        if: ${{ inputs.action == 'deprecate' }}
+        env:
+          VER: ${{ inputs.version }}
+          MESSAGE: ${{ inputs.message }}
+        run: npx --yes npm@11 deprecate "${PACKAGE}@${VER}" "${MESSAGE}"
