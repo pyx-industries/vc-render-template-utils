@@ -97,6 +97,30 @@ describe('constructRenderMethodAsync', () => {
       expect(result.url).toBe(url);
       expect(result.mediaQuery).toBe('print');
     });
+
+    it('hashes the raw template bytes, not the whitespace-normalised template stored in the output', async () => {
+      const rawTemplate = `<div>
+    <h1>{{title}}</h1>
+    <p>{{description}}</p>
+  </div>`;
+
+      const result = (await constructRenderMethodAsync(
+        rawTemplate,
+        RenderMethodType.RenderTemplate2024,
+        { url },
+      )) as RenderTemplate2024;
+
+      expect(result.template).not.toBe(rawTemplate);
+      expect(result.template).not.toContain('\n');
+
+      const parsed = MultibaseDigest.fromString(result.digestMultibase!);
+      await expect(
+        parsed.verify(new TextEncoder().encode(rawTemplate)),
+      ).resolves.toBe(true);
+      await expect(
+        parsed.verify(new TextEncoder().encode(result.template!)),
+      ).resolves.toBe(false);
+    });
   });
 
   describe('WebRenderingTemplate2022', () => {
