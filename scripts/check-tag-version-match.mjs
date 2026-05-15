@@ -56,6 +56,21 @@ if (!tagVersion) {
   exit(1);
 }
 
+// Tag-pattern triggers in GitHub Actions match shell-style globs, so a
+// pattern like `v*` also fires on `vendor-snapshot-2026-05` or `v_test`.
+// Reject anything whose suffix is not a SemVer string that the rest of the
+// release pipeline can interpret. The accepted forms mirror the pre-release
+// dist-tag regex in `release.yml`: `X.Y.Z`, or
+// `X.Y.Z-(rc|alpha|beta|pre).N`.
+const SEMVER = /^\d+\.\d+\.\d+(?:-(?:rc|alpha|beta|pre)\.\d+)?$/;
+if (!SEMVER.test(tagVersion)) {
+  console.error(
+    `Tag "${refName}" suffix "${tagVersion}" is not a supported SemVer form. ` +
+      `Expected "X.Y.Z" or "X.Y.Z-(rc|alpha|beta|pre).N".`,
+  );
+  exit(1);
+}
+
 const packageJsonPath = resolve('package.json');
 let pkg;
 try {

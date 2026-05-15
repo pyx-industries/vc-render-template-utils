@@ -51,10 +51,23 @@ Adopt the `tests-untp` release model in this repository, with adjustments for th
 - Every PR author has to update the changelog and release notes themselves when their change is user-visible. The bot-authored convenience is gone.
 - The version bump is a manual judgment instead of being inferred from commit prefixes. PR review must catch wrong bumps.
 - Pre-release dist-tag routing is decided by tag-name pattern only. There is no way to manually override the dist-tag for a stable-looking tag.
+- The pre-release detector is strict about its shape: only `-(rc|alpha|beta|pre).N` suffixes route to the `rc` dist-tag. A tag like `v2.1.0-rc1` (no dot, no integer) falls through to `latest`. The version-match script rejects such tags up-front so a wrongly-shaped pre-release tag fails fast rather than publishing to the wrong dist-tag.
 
 ### Migration
 
-- A single foundational PR introduces the new workflows, the version-match script, the disaster recovery workflow, the rewritten `CHANGELOG.md` (preserving prior version entries), and `RELEASE_NOTES.md`. The same PR removes `release-please-config.json`, `.release-please-manifest.json`, the `changelog.yml` workflow, and the `release-and-publish.yml` workflow.
-- A second PR brings the digest-multibase work from `next` onto `main`, bumps the version to `2.1.0`, and adds a `2.1.0` section to both changelog files. After it merges, pushing `v2.1.0` performs the first tag-triggered release.
-- `next` is deleted (or archived) once `main` is at parity. Branch protection moves to `main`.
-- The npmjs.com Trusted Publisher for the package is configured to trust the new workflow file.
+This PR (infrastructure only):
+
+- Adds `docs/adrs/001-...md` (this ADR), `.github/workflows/release.yml`, `.github/workflows/unpublish-or-deprecate.yml`, `scripts/check-tag-version-match.mjs` and tests.
+- Rewrites `CHANGELOG.md` to Keep-a-Changelog format (preserving prior version entries) and adds `RELEASE_NOTES.md`.
+- Retargets `.github/workflows/test-and-build.yml` from PRs against `next` to PRs against `main`.
+- Removes `.github/workflows/release-please-config.json`, `.github/workflows/.release-please-manifest.json`, `.github/workflows/changelog.yml`, and `.github/workflows/release-and-publish.yml`.
+
+A follow-up PR will:
+
+- Bring the digest-multibase work from `next` onto `main`, bump the version to `2.1.0`, and add a `2.1.0` section to both changelog files. After it merges, pushing `v2.1.0` performs the first tag-triggered release.
+
+Operator actions outside the PR diff:
+
+- Configure the npmjs.com Trusted Publisher for `@pyx-industries/vc-render-template-utils` to trust the `Release` workflow in this repository.
+- Delete (or archive) `origin/next` once `main` is at parity.
+- Update branch protection: protect `main`; remove protection from `next`.
