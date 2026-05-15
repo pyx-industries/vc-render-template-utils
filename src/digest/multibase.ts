@@ -15,8 +15,17 @@ export interface GenerateDigestMultibaseOptions {
   base?: MultibaseEncoding;
 }
 
-const DEFAULT_ALGORITHM: HashAlgorithm = 'sha2-256';
-const DEFAULT_BASE: MultibaseEncoding = 'base58btc';
+/**
+ * Default hash algorithm used by {@link generateDigestMultibase} when the
+ * caller does not supply one. Matches the conventional UNTP/W3C-VC choice.
+ */
+export const DEFAULT_DIGEST_ALGORITHM: HashAlgorithm = 'sha2-256';
+
+/**
+ * Default multibase encoding used by {@link generateDigestMultibase} when the
+ * caller does not supply one. Matches the conventional UNTP/W3C-VC choice.
+ */
+export const DEFAULT_DIGEST_BASE: MultibaseEncoding = 'base58btc';
 
 /**
  * Hashes the UTF-8 bytes of `content` and returns a multibase-encoded
@@ -43,8 +52,8 @@ export async function generateDigestMultibase(
   content: string,
   opts: GenerateDigestMultibaseOptions = {},
 ): Promise<string> {
-  const algorithm = opts.algorithm ?? DEFAULT_ALGORITHM;
-  const base = opts.base ?? DEFAULT_BASE;
+  const algorithm = opts.algorithm ?? DEFAULT_DIGEST_ALGORITHM;
+  const base = opts.base ?? DEFAULT_DIGEST_BASE;
 
   const digest = await MultibaseDigest.fromData(
     new TextEncoder().encode(content),

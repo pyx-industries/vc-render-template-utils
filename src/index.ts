@@ -13,6 +13,8 @@ import { normaliseWhitespace, removeLineBreaks } from './utils';
 export * from './errors';
 export * from './types';
 export {
+  DEFAULT_DIGEST_ALGORITHM,
+  DEFAULT_DIGEST_BASE,
   generateDigestMultibase,
   type GenerateDigestMultibaseOptions,
 } from './digest/multibase';
@@ -43,6 +45,18 @@ export function constructRenderMethod(
  * itself, so emitting a digest there is at best redundant and at worst a
  * footgun if the inline content and the recorded digest drift. The presence
  * of `url` is treated as the caller's declaration of remote intent.
+ *
+ * Precondition for the URL-hosted case: the bytes the caller intends to host
+ * at `url` must be byte-identical to the `template` argument passed here.
+ * The digest is computed over the raw `template` bytes BEFORE whitespace
+ * normalisation, so it describes the unprocessed input, not the cleaned
+ * value that is also stored in the output's inline `template` field. If a
+ * caller supplies both inline `template` and `url`, the stored inline value
+ * will not hash to `digestMultibase`; a verifier must hash the bytes fetched
+ * from `url`, not the inline `template` field. The intended workflow is to
+ * host the unprocessed input at `url` and treat the inline `template` field
+ * as either absent or a cache that is not the source of truth for the
+ * digest.
  *
  * @param template Source template bytes. The digest, when generated, is
  *   computed from these bytes prior to whitespace normalisation, so it
@@ -75,32 +89,13 @@ async function resolveExtraWithDigest(
   renderMethodType: RenderMethodType,
   extra: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
-  if (renderMethodType !== RenderMethodType.RenderTemplate2024) {
-    return extra;
-  }
-
-  if (!shouldGenerateDigest(template, extra)) {
-    return extra;
-  }
+  if (renderMethodType !== RenderMethodType.RenderTemplate2024) return extra;
+  if (!template) return extra;
+  if (!isNonEmptyString(extra.url)) return extra;
+  if (isNonEmptyString(extra.digestMultibase)) return extra;
 
   const digestMultibase = await generateDigestMultibase(template);
   return { ...extra, digestMultibase };
-}
-
-function shouldGenerateDigest(
-  template: string,
-  extra: Record<string, unknown>,
-): boolean {
-  if (!template) {
-    return false;
-  }
-  if (!isNonEmptyString(extra.url)) {
-    return false;
-  }
-  if (isNonEmptyString(extra.digestMultibase)) {
-    return false;
-  }
-  return true;
 }
 
 function isNonEmptyString(value: unknown): value is string {

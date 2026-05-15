@@ -32,6 +32,37 @@ describe('constructRenderMethodAsync', () => {
       expect(result.digestMultibase).toBeUndefined();
     });
 
+    it('omits digestMultibase when url is an empty string', async () => {
+      const result = (await constructRenderMethodAsync(
+        template,
+        RenderMethodType.RenderTemplate2024,
+        { url: '' },
+      )) as RenderTemplate2024;
+
+      expect(result.digestMultibase).toBeUndefined();
+    });
+
+    it('omits digestMultibase when url is a non-string value', async () => {
+      const result = (await constructRenderMethodAsync(
+        template,
+        RenderMethodType.RenderTemplate2024,
+        { url: 123 as unknown as string },
+      )) as RenderTemplate2024;
+
+      expect(result.digestMultibase).toBeUndefined();
+    });
+
+    it('regenerates digestMultibase when caller supplies an empty string', async () => {
+      const result = (await constructRenderMethodAsync(
+        template,
+        RenderMethodType.RenderTemplate2024,
+        { url, digestMultibase: '' },
+      )) as RenderTemplate2024;
+
+      expect(result.digestMultibase).toBeDefined();
+      expect(result.digestMultibase).not.toBe('');
+    });
+
     it('omits digestMultibase when template is empty even if url is set', async () => {
       const result = (await constructRenderMethodAsync(
         '',
