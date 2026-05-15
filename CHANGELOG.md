@@ -1,47 +1,39 @@
 # Changelog
 
-## [2.0.0](https://github.com/pyx-industries/vc-render-template-utils/compare/1.1.0...v2.0.0) (2026-05-01)
+All notable changes to `@pyx-industries/vc-render-template-utils` are
+documented here. The format follows [Keep a Changelog](https://keepachangelog.com/)
+and the version numbers follow [semantic versioning](https://semver.org/).
+The package ships via the `v<X.Y.Z>` tag-triggered publish workflow described
+in [ADR 001](./docs/adrs/001-trunk-based-development-and-tag-triggered-releases.md).
 
+## [2.0.0] - 2026-05-01
 
-### ⚠ BREAKING CHANGES
+### Changed
 
-* **render-method-2024:** align RenderTemplate2024 with downstream renderer ([#19](https://github.com/pyx-industries/vc-render-template-utils/issues/19))
+- **BREAKING**: `RenderTemplate2024.type` is now `string[]` (must include
+  `'RenderTemplate2024'`) rather than a single literal string, matching the
+  shape produced and consumed by the downstream vckit renderer.
 
-### Features
+### Added
 
-* **render-method-2024:** Align RenderTemplate2024 with downstream renderer ([#19](https://github.com/pyx-industries/vc-render-template-utils/issues/19)) ([d042ef9](https://github.com/pyx-industries/vc-render-template-utils/commit/d042ef9afbbea4fca20bbeb5d51d4c1515a69faa))
+- `RenderTemplate2024` now accepts optional `name`, `mediaType`, and
+  `digestMultibase` fields via the `extra` argument to `constructRenderMethod`.
+  Empty or non-string values are omitted from the constructed render method
+  rather than emitted as empty strings.
 
+## [1.1.0] - 2025-05-20
 
-### Miscellaneous
+### Added
 
-* Add repository information ([318eeed](https://github.com/pyx-industries/vc-render-template-utils/commit/318eeed09984066db8fa7335652b6db87c2e36b3))
-* Re-trigger release-please ([3a3f5cc](https://github.com/pyx-industries/vc-render-template-utils/commit/3a3f5cc9188566726d3ba3cdbc9dee2cba8772cc))
+- `removeLineBreaks` now handles `\r` and consecutive line breaks.
+- Template whitespace is normalised before storage so embedded templates
+  retain a single space between tokens.
 
-## [1.1.0](https://github.com/pyx-industries/vc-render-template-utils/compare/1.0.0...v1.1.0) (2025-05-20)
+## [1.0.0] - 2025-04-29
 
+### Added
 
-### Features
-
-* Enhance removeLineBreaks to handle \r and consecutive line breaks ([#5](https://github.com/pyx-industries/vc-render-template-utils/issues/5)) ([4d14aaa](https://github.com/pyx-industries/vc-render-template-utils/commit/4d14aaa3db0c627c2e475bab69e9cea79edb065e))
-* Normalise template whitespace ([#4](https://github.com/pyx-industries/vc-render-template-utils/issues/4)) ([fb40692](https://github.com/pyx-industries/vc-render-template-utils/commit/fb40692c6a74f02aedae454a31498b79fc611608))
-
-
-### Miscellaneous
-
-* Fix extractRenderTemplate example format ([#3](https://github.com/pyx-industries/vc-render-template-utils/issues/3)) ([1212afa](https://github.com/pyx-industries/vc-render-template-utils/commit/1212afa2b73ffa0c49e80df799a9a124d23c8a7a))
-
-
-### CI
-
-* Fix changelog manifest version bump ([#11](https://github.com/pyx-industries/vc-render-template-utils/issues/11)) ([4b5d4d9](https://github.com/pyx-industries/vc-render-template-utils/commit/4b5d4d984ef5efcb1aa36f03b57dd310077493b8))
-* Remove node workspace plugin ([#15](https://github.com/pyx-industries/vc-render-template-utils/issues/15)) ([b444c9a](https://github.com/pyx-industries/vc-render-template-utils/commit/b444c9ac435d2d8e8c16f428df2410967ccd53df))
-* Update changelog config ([#7](https://github.com/pyx-industries/vc-render-template-utils/issues/7)) ([f6bdf4b](https://github.com/pyx-industries/vc-render-template-utils/commit/f6bdf4b35c62e99cddf0821466ccffe9268b44dc))
-* Update changelog config ([#9](https://github.com/pyx-industries/vc-render-template-utils/issues/9)) ([f48a248](https://github.com/pyx-industries/vc-render-template-utils/commit/f48a24881342bdec3773e095eb569e808535d4dd))
-
-## [1.0.0](https://github.com/pyx-industries/vc-render-template-utils/compare/v1.0.0...v1.0.0) (2025-04-29)
-
-
-### Miscellaneous
-
-* Init commit ([e8d69e0](https://github.com/pyx-industries/vc-render-template-utils/commit/e8d69e036ab19224d97857033b57dbc73ad4f42f))
-* Release 1.0.0 ([d967b8d](https://github.com/pyx-industries/vc-render-template-utils/commit/d967b8d26ea337e5c64e0a3e8ce0d27678af2db6))
+- Initial public release of `constructRenderMethod`, `extractRenderTemplate`,
+  and `populateTemplate` for the `RenderTemplate2024` and
+  `WebRenderingTemplate2022` render methods, plus the `Handlebars` templating
+  engine.

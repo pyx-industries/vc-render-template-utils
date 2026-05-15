@@ -1,0 +1,90 @@
+name: Release
+
+# Tag-triggered release workflow for @pyx-industries/vc-render-template-utils.
+# Triggers on push of a tag matching `v<X.Y.Z>` (stable) or
+# `v<X.Y.Z>-rc.N` / `-alpha.N` / `-beta.N` / `-pre.N` (pre-release). The tag
+# is the release event; this workflow publishes the artefact and nothing
+# else.
+#
+# Authentication uses npm OIDC Trusted Publishing. The npmjs.com Trusted
+# Publisher for `@pyx-industries/vc-render-template-utils` must be configured
+# to point at this workflow filename. Publish is done via `npx npm@11
+# publish` because OIDC Trusted Publishing requires npm CLI >= 11.5.0 and
+# Node 22 (pinned in `.nvmrc`) bundles npm 10.x. npx fetches an isolated
+# npm 11 binary instead of self-upgrading the system npm in place.
+#
+# See ADR 001: docs/adrs/001-trunk-based-development-and-tag-triggered-releases.md
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'pyx-industries'
+
+    steps:
+      - name: Checkout tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Verify checkout
+        run: |
+          ACTUAL=$(git rev-parse HEAD)
+          if [ "$ACTUAL" != "${{ github.sha }}" ]; then
+            echo "::error::Wrong checkout. Expected ${{ github.sha }}, got $ACTUAL"
+            exit 1
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Verify tag/package version match
+        run: node scripts/check-tag-version-match.mjs v
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Test
+        run: yarn test:ci
+
+      - name: Build
+        run: yarn build
+
+      - name: Determine npm dist-tag
+        id: dist
+        run: |
+          if [[ "${GITHUB_REF_NAME}" =~ -(rc|alpha|beta|pre)\. ]]; then
+            echo "tag=rc" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish
+        env:
+          NPM_CONFIG_PROVENANCE: 'true'
+        # Use npx to fetch npm@11 into a temp location instead of upgrading
+        # the system npm in place. Self-upgrading npm with
+        # `npm install --global npm@11` tears down the running process's
+        # own node_modules mid-install and crashes. npx avoids that by
+        # running an isolated npm 11 binary.
+        run: npx --yes npm@11 publish --access public --tag ${{ steps.dist.outputs.tag }}
