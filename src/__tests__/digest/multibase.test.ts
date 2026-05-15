@@ -71,4 +71,14 @@ describe('generateDigestMultibase', () => {
     const b = await generateDigestMultibase('two');
     expect(a).not.toBe(b);
   });
+
+  it('hashes the UTF-8 byte representation of non-ASCII content', async () => {
+    const nonAscii = 'café au lait \u{1F4A1}';
+    const encoded = await generateDigestMultibase(nonAscii);
+    const parsed = MultibaseDigest.fromString(encoded);
+
+    await expect(
+      parsed.verify(new TextEncoder().encode(nonAscii)),
+    ).resolves.toBe(true);
+  });
 });
