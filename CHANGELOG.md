@@ -6,6 +6,29 @@ and the version numbers follow [semantic versioning](https://semver.org/).
 The package ships via the `v<X.Y.Z>` tag-triggered publish workflow described
 in [ADR 001](./docs/adrs/001-trunk-based-development-and-tag-triggered-releases.md).
 
+## [2.1.0] - 2026-05-15
+
+### Added
+
+- `constructRenderMethodAsync`: asynchronous counterpart to
+  `constructRenderMethod` that auto-fills `digestMultibase` for
+  `RenderTemplate2024` outputs when `extra.url` is a non-empty string, the
+  source `template` is non-empty, and the caller has not pre-supplied a
+  `digestMultibase`. The synchronous `constructRenderMethod` is unchanged.
+- `generateDigestMultibase(content, opts?)`: primitive that hashes the UTF-8
+  bytes of `content` and returns a multibase-encoded multihash string.
+  Defaults to `sha2-256` and `base58btc`; both configurable. Built on
+  [`@uncefact/untp-utils`](https://www.npmjs.com/package/@uncefact/untp-utils).
+- `DEFAULT_DIGEST_ALGORITHM` and `DEFAULT_DIGEST_BASE` exported constants for
+  callers that want to be explicit about the defaults.
+
+### Changed
+
+- The Jest config now transforms `@uncefact/untp-utils` and `multiformats`
+  via `transformIgnorePatterns`, with targeted `moduleNameMapper` entries
+  for the `multiformats` subpaths used by the new primitive. Existing tests
+  are unaffected.
+
 ## [2.0.0] - 2026-05-01
 
 ### Changed
