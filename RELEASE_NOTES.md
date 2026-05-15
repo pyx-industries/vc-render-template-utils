@@ -13,8 +13,8 @@ A new asynchronous constructor, `constructRenderMethodAsync`, mirrors
 `RenderTemplate2024` outputs whenever a `url` is supplied and the template
 is non-empty. Existing callers that already compute their own
 `digestMultibase` (or that do not want one) are unaffected: the
-synchronous `constructRenderMethod` is unchanged, and a caller-supplied
-`digestMultibase` is preserved verbatim.
+synchronous `constructRenderMethod` is unchanged, and a non-empty
+caller-supplied `digestMultibase` is preserved verbatim.
 
 The gating reflects the spec semantics. A `digestMultibase` only adds
 value when the template is hosted remotely, because the signed credential
