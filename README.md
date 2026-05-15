@@ -94,6 +94,39 @@ Constructs a render method object for the specified template and type.
 - `renderMethodType`: Either `RenderTemplate2024` or `WebRenderingTemplate2022`.
 - `extra`: Optional metadata. For `RenderTemplate2024` the supported keys are `name`, `mediaQuery`, `url`, `mediaType`, and `digestMultibase`. Empty or non-string values are omitted from the constructed render method rather than emitted as empty strings.
 
+### constructRenderMethodAsync
+
+```typescript
+constructRenderMethodAsync(template: string, renderMethodType: RenderMethodType, extra?: Record<string, unknown>): Promise<RenderMethod>
+```
+
+Asynchronous counterpart to `constructRenderMethod`. Behaves identically except that, for `RenderTemplate2024` outputs, it auto-fills `digestMultibase` from the source template bytes when a `url` is supplied and the caller has not already provided a digest.
+
+`digestMultibase` is gated on the presence of `url`: it only adds value when the template is hosted remotely, since an inline `template` is already covered by the signed credential.
+
+```typescript
+import {
+  constructRenderMethodAsync,
+  RenderMethodType,
+} from '@pyx-industries/vc-render-template-utils';
+
+const renderMethod = await constructRenderMethodAsync(
+  '<div>Hello, {{name}}!</div>',
+  RenderMethodType.RenderTemplate2024,
+  { url: 'https://example.com/template.html' },
+);
+
+// renderMethod.digestMultibase === 'z...' (sha2-256 + base58btc by default)
+```
+
+### generateDigestMultibase
+
+```typescript
+generateDigestMultibase(content: string, opts?: { algorithm?: HashAlgorithm; base?: MultibaseEncoding }): Promise<string>
+```
+
+Hashes the UTF-8 bytes of `content` and returns a multibase-encoded multihash string suitable for `digestMultibase` fields. Defaults to `sha2-256` and `base58btc`; see [@uncefact/untp-utils](https://www.npmjs.com/package/@uncefact/untp-utils) for the supported algorithms and encodings.
+
 ### extractRenderTemplate
 
 ```typescript

@@ -1,3 +1,4 @@
+import { generateDigestMultibase } from './digest/multibase';
 import { UnsupportedRenderMethodError } from './errors';
 import { RenderMethodFactory } from './render_methods/factory';
 import { TemplatingEngineFactory } from './templating_engines/factory';
@@ -11,6 +12,10 @@ import { normaliseWhitespace, removeLineBreaks } from './utils';
 
 export * from './errors';
 export * from './types';
+export {
+  generateDigestMultibase,
+  type GenerateDigestMultibaseOptions,
+} from './digest/multibase';
 
 export function constructRenderMethod(
   template: string,
@@ -23,6 +28,83 @@ export function constructRenderMethod(
   const renderMethod = renderMethodFactory.createRenderMethod(renderMethodType);
 
   return renderMethod.construct(cleanedTemplate, extra);
+}
+
+/**
+ * Asynchronous counterpart to {@link constructRenderMethod}. Behaves
+ * identically except that, for `RenderTemplate2024` outputs, it auto-fills
+ * `extra.digestMultibase` from the source `template` bytes when a `url` is
+ * supplied and the caller has not already provided a digest. For all other
+ * render method types and for cases without a `url`, the result matches the
+ * synchronous constructor.
+ *
+ * Gating rationale: `digestMultibase` only adds value when the template is
+ * hosted remotely. The signed credential covers an inline `template` by
+ * itself, so emitting a digest there is at best redundant and at worst a
+ * footgun if the inline content and the recorded digest drift. The presence
+ * of `url` is treated as the caller's declaration of remote intent.
+ *
+ * @param template Source template bytes. The digest, when generated, is
+ *   computed from these bytes prior to whitespace normalisation, so it
+ *   describes the content the caller intends to host at `url`.
+ * @param renderMethodType Render method type to construct.
+ * @param extra Optional metadata, forwarded to the synchronous constructor.
+ *   For `RenderTemplate2024`, supported keys include `name`, `mediaQuery`,
+ *   `url`, `mediaType`, and `digestMultibase`. A caller-supplied
+ *   `digestMultibase` is preserved verbatim.
+ * @returns The constructed render method object.
+ * @throws If `renderMethodType` is not supported, or if the digest
+ *   generation fails (see {@link generateDigestMultibase}).
+ */
+export async function constructRenderMethodAsync(
+  template: string,
+  renderMethodType: RenderMethodType,
+  extra: Record<string, unknown> = {},
+): Promise<RenderMethod> {
+  const resolvedExtra = await resolveExtraWithDigest(
+    template,
+    renderMethodType,
+    extra,
+  );
+
+  return constructRenderMethod(template, renderMethodType, resolvedExtra);
+}
+
+async function resolveExtraWithDigest(
+  template: string,
+  renderMethodType: RenderMethodType,
+  extra: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  if (renderMethodType !== RenderMethodType.RenderTemplate2024) {
+    return extra;
+  }
+
+  if (!shouldGenerateDigest(template, extra)) {
+    return extra;
+  }
+
+  const digestMultibase = await generateDigestMultibase(template);
+  return { ...extra, digestMultibase };
+}
+
+function shouldGenerateDigest(
+  template: string,
+  extra: Record<string, unknown>,
+): boolean {
+  if (!template) {
+    return false;
+  }
+  if (!isNonEmptyString(extra.url)) {
+    return false;
+  }
+  if (isNonEmptyString(extra.digestMultibase)) {
+    return false;
+  }
+  return true;
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value !== '';
 }
 
 export const extractRenderTemplate = async (
